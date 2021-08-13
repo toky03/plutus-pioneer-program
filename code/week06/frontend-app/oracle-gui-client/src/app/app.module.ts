@@ -10,7 +10,7 @@ import { MatCardModule } from '@angular/material/card';
 import {MatButtonModule} from '@angular/material/button'
 import {MatInputModule} from '@angular/material/input';
 import {MatIconModule} from '@angular/material/icon';
-import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 import { WalletComponent } from './wallet/wallet.component';
 import { SortPipe } from './service/sort.pipe';
@@ -32,7 +32,7 @@ import { SortPipe } from './service/sort.pipe';
     MatButtonModule,
     MatInputModule,
     MatIconModule,
-    MatProgressBarModule
+    MatProgressSpinnerModule
 
   ],
   providers: [],

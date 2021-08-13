@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"log"
+	"time"
 
 	"github.com/toky03/oracle-swap-demo/adapter"
 	"github.com/toky03/oracle-swap-demo/model"
@@ -31,6 +32,7 @@ func CreateOracleService() *oracleServiceImpl {
 
 func (s *oracleServiceImpl) ReadWallets() ([]model.Wallet, error) {
 	wallets := make([]model.Wallet, 0, len(s.wallets))
+	time.Sleep(1 * time.Second)
 	for name, _ := range s.wallets {
 		wallet, err := s.ReadFunds(name)
 		if err != nil {
@@ -73,9 +75,12 @@ func (s *oracleServiceImpl) ReadFunds(walletId string) (model.Wallet, error) {
 	}
 	err := s.oracleAdapter.ReadFunds(walletUuid)
 	if err != nil {
-		return model.Wallet{}, err
+		return model.Wallet{}, errors.New("error posting for funds, wallet: " + walletId + ", error:" + err.Error())
 	}
 	walletStatus, err := s.oracleAdapter.ReadStatus(walletUuid)
+	if err != nil {
+		return model.Wallet{}, errors.New("error with get request for status, wallet: " + walletId + ", error:" + err.Error())
+	}
 	return model.Wallet{
 		WalletName: walletId,
 		WalletUuid: walletUuid,

@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { LoveLaceOffer, Wallet, WalletMap } from '../model/model';
+import { environment } from 'src/environments/environment';
+import { LoveLaceOffer, Wallet } from '../model/model';
 
-const API_ROOT = '/api';
+const API_ROOT = environment.apiBaseUrl;
 @Injectable({
   providedIn: 'root'
 })

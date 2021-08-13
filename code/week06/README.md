@@ -4,7 +4,8 @@
 - cabal and ghc installed
 - golang installed
 - npm installed
-If you havent golang installed you can use docker containers instead
+
+If you do not have golang or npm installed you can use [the pre build docker images instead](#Running-With-Docker)
 
 ## Run PAB and oracle client
 1. `cabal run oracle-pab`
@@ -16,17 +17,17 @@ If you havent golang installed you can use docker containers instead
 If you want to recompile the Frontend GUI Code you need to navigate into the frontend-app/oracle-gui-client folder and run `npm run build`
 this will compile the html and js code into a static served folder.
 
-### Run the Frontend application
+### Run the Frontend application with docker
 1. Navigate to fronten-app
 2. `go run main.go`
 3. navigate to [the gui](http://localhost:3001/)
 
 ## Running with Docker 
-If you do not have npm or golang installed you can simply use the pre build docker image `toky03/oracle-frontent-client:0.0.3`
+If you do not have npm or golang installed you can simply use the pre build docker image `toky03/oracle-frontent-client:0.0.4`
 You need to add the volume to enable the container to grap all *.cid files (To fetch the uuids)
 And you need to run the docker container with the host network in order to be able to call all localhost endpoints
 Command to run the container
 ```bash
 # from withing the week06 folder
-docker run -v $(pwd):/cidfiles -e CID_ROOT=/cidfiles --network host --name frontend-client toky03/oracle-frontent-client:0.0.3
+docker run -v $(pwd):/cidfiles -e CID_ROOT=/cidfiles --network host --name frontend-client toky03/oracle-frontent-client:0.0.4
 ```

@@ -1,10 +1,16 @@
-<mat-progress-bar
-  mode="indeterminate"
-  hidden="loading$ | async"
-></mat-progress-bar>
-<mat-card
-  *ngFor="let wallet of wallets$ | async | sort; trackBy: trackByWalletName"
-  [style.background]="'lightblue'"
->
-  <app-wallet [wallet]="wallet"></app-wallet>
-</mat-card>
+<div class="wrapper">
+  <div class="overlay" *ngIf="loading$ | async">
+    <div class="spinner-wrapper">
+      <mat-progress-spinner color="primary" mode="indeterminate">
+      </mat-progress-spinner>
+    </div>
+  </div>
+  <div [class.blurred]="loading$ | async" class="wallet-content">
+    <mat-card
+      *ngFor="let wallet of wallets$ | async | sort; trackBy: trackByWalletName"
+      [style.background]="'lightblue'"
+    >
+      <app-wallet [wallet]="wallet"></app-wallet>
+    </mat-card>
+  </div>
+</div>

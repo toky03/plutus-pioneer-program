@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -80,20 +81,28 @@ func (u *oracleAdapter) ReadStatus(uuid string) (model.WalletStatus, error) {
 
 func (u *oracleAdapter) createEmptyPostRequest(endpoint, uuid string, payload *strings.Reader) error {
 	url := fmt.Sprintf("%s/%s/%s", u.baseUrl, uuid, endpoint)
-
+	retries := 5
+	var response *http.Response
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		return err
 	}
 	req.Header.Add("content-type", "application/json")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+
+	for retries > 0 {
+		response, err = http.DefaultClient.Do(req)
+		if err != nil {
+			log.Println(err)
+			retries -= 1
+		} else if response.StatusCode != http.StatusOK {
+			body, _ := ioutil.ReadAll(response.Body)
+			err = errors.New("Status does not match expectation of 200 actual status is: " + response.Status + " content " + string(body))
+			log.Println(err)
+			retries -= 1
+		} else {
+			break
+		}
+		time.Sleep(3 * time.Second)
 	}
-	if res.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(res.Body)
-		return errors.New("Status does not match expectation of 200 actual status is: " + res.Status + " content " + string(body))
-	}
-	time.Sleep(1 * time.Second)
-	return nil
+	return err
 }

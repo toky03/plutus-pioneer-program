@@ -15,37 +15,71 @@ export class StateService {
 
   public readWallets(): void {
     this.loading$.next(true);
-    this.integrationService.readWallets().subscribe((wallets: Wallet[]) => {
-      this.wallets$.next(wallets);
-      this.loading$.next(false);
-    });
+    this.integrationService.readWallets().subscribe(
+      (wallets: Wallet[]) => {
+        this.wallets$.next(wallets);
+        this.loading$.next(false);
+      },
+      (error: any) => {
+        this.loading$.next(false);
+      }
+    );
   }
-
 
   public updateWallet(walletId: string): void {
     this.integrationService
       .readFunds(walletId)
-      .pipe(withLatestFrom(this.wallets$),
-      map(([wallet, wallets]: [Wallet, Wallet[]]) => {
-        return [...wallets.filter((w: Wallet) => w.walletName != wallet.walletName), wallet]
-      }))
-      .subscribe((wallets: Wallet[]) => this.wallets$.next(wallets));
+      .pipe(
+        withLatestFrom(this.wallets$),
+        map(([wallet, wallets]: [Wallet, Wallet[]]) => {
+          return [
+            ...wallets.filter((w: Wallet) => w.walletName != wallet.walletName),
+            wallet,
+          ];
+        })
+      )
+      .subscribe(
+        (wallets: Wallet[]) => this.wallets$.next(wallets),
+        (error: any) => {
+          this.loading$.next(false);
+        }
+      );
   }
 
   public use(walletId: string): void {
     this.loading$.next(true);
-    this.integrationService.use(walletId).subscribe();
-    this.readWallets();
+    this.integrationService.use(walletId).subscribe(
+      () => {
+        this.readWallets();
+      },
+      (error: any) => {
+        this.loading$.next(false);
+      }
+    );
   }
   public retrieve(walletId: string): void {
     this.loading$.next(true);
-    this.integrationService.retreive(walletId).subscribe();
-    this.readWallets();
+    this.integrationService.retreive(walletId).subscribe(
+      () => {
+        this.readWallets();
+      },
+      (error: any) => {
+        this.loading$.next(false);
+      }
+    );
   }
 
   public offerLovelaces(walletId: string, offer: number): void {
     this.loading$.next(true);
-    this.integrationService.offerLovelace(walletId, {offeredLovelaces: offer}).subscribe();
-    this.readWallets();
+    this.integrationService
+      .offerLovelace(walletId, { offeredLovelaces: offer })
+      .subscribe(
+        () => {
+          this.readWallets();
+        },
+        (error: any) => {
+          this.loading$.next(false);
+        }
+      );
   }
 }
