@@ -24,10 +24,9 @@ main = do
   where
     go :: UUID -> Maybe Integer -> IO a
     go uuid m = do
-        x <- getExchangeRate
-        let y = Just x
+        let y = Just 2
         when (m /= y) $
-            updateOracle uuid x
+            updateOracle uuid 2
         threadDelay 5_000_000
         go uuid y
 

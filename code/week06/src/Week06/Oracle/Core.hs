@@ -157,6 +157,7 @@ startOracle op = do
 
 updateOracle :: forall w s. Oracle -> Integer -> Contract w s Text ()
 updateOracle oracle x = do
+    logInfo @String $ "update oracle with " ++ show x
     m <- findOracle oracle
     let c = Constraints.mustPayToTheScript x $ assetClassValue (oracleAsset oracle) 1
     case m of
@@ -195,6 +196,7 @@ runOracle op = do
   where
     go :: Oracle -> Contract (Last Oracle) OracleSchema Text a
     go oracle = do
+        logInfo @String $ "run oracle with update oracle " ++ show oracle
         x <- endpoint @"update"
         updateOracle oracle x
         go oracle

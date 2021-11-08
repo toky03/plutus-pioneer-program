@@ -16,7 +16,7 @@ import           Control.Monad              hiding (fmap)
 import           Control.Monad.Freer.Extras as Extras
 import           Data.Aeson                 (ToJSON, FromJSON)
 import           Data.Default               (Default (..))
-import           Data.Text                  (Text)
+import           Data.Text                  (Text, unpack)
 import           Data.Void                  (Void)
 import           GHC.Generics               (Generic)
 import           Plutus.Contract            as Contract
@@ -39,13 +39,29 @@ import           Wallet.Emulator.Wallet
 -- This policy should only allow minting (or burning) of tokens if the owner of the specified PubKeyHash
 -- has signed the transaction and if the specified deadline has not passed.
 mkPolicy :: PubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
-mkPolicy pkh deadline () ctx = True -- FIX ME!
+mkPolicy pkh deadline () ctx = traceIfFalse "the owner of the specified pubKey Hash must have signed the transaction and the transaction has to be before the deadline" $ signedByOwner && beforeDeadline
+    where
+        info :: TxInfo
+        info = scriptContextTxInfo ctx
+
+        signedByOwner :: Bool
+        signedByOwner = txSignedBy info pkh
+
+        beforeDeadline :: Bool
+        beforeDeadline = contains (to deadline) $ txInfoValidRange info
+
+
 
 policy :: PubKeyHash -> POSIXTime -> Scripts.MintingPolicy
-policy pkh deadline = undefined -- IMPLEMENT ME!
+policy pkh deadline = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| \pkhRef deadlineRef -> Scripts.wrapMintingPolicy $ mkPolicy pkhRef deadlineRef ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode pkh
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode deadline
 
 curSymbol :: PubKeyHash -> POSIXTime -> CurrencySymbol
-curSymbol pkh deadline = undefined -- IMPLEMENT ME!
+curSymbol pkh deadline = scriptCurrencySymbol $ policy pkh deadline
 
 data MintParams = MintParams
     { mpTokenName :: !TokenName
@@ -60,12 +76,10 @@ mint mp = do
     pkh <- pubKeyHash <$> Contract.ownPubKey
     now <- Contract.currentTime
     let deadline = mpDeadline mp
-    if now > deadline
-        then Contract.logError @String "deadline passed"
-        else do
+    handleError Contract.logError $ do
             let val     = Value.singleton (curSymbol pkh deadline) (mpTokenName mp) (mpAmount mp)
                 lookups = Constraints.mintingPolicy $ policy pkh deadline
-                tx      = Constraints.mustMintValue val <> Constraints.mustValidateIn (to $ now + 5000)
+                tx      = Constraints.mustMintValue val <> Constraints.mustValidateIn (to $ now + 5000) -- add 5 seconds to now
             ledgerTx <- submitTxConstraintsWith @Void lookups tx
             void $ awaitTxConfirmed $ txId ledgerTx
             Contract.logInfo @String $ printf "forged %s" (show val)

@@ -40,7 +40,7 @@ mkPolicy oref tn () ctx = traceIfFalse "UTxO not consumed"   hasUTxO           &
     info = scriptContextTxInfo ctx
 
     hasUTxO :: Bool
-    hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
+    hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info 
 
     checkMintedAmount :: Bool
     checkMintedAmount = case flattenValue (txInfoForge info) of
